@@ -8,16 +8,16 @@ DEALER_MIN_HIT = 17
 
 helpers do 
   def calculate_total(cards)
-    arr = cards.map {|element| element[1]}
+    card_array = cards.map {|card| card[1]}
     total = 0
-    arr.each do |a|
-      if a == 'A'
+    card_array.each do |card|
+      if card == 'A'
         total += 11
       else
-        total += a.to_i == 0 ? 10 : a.to_i
+        total += card.to_i == 0 ? 10 : card.to_i
       end
     end
-    arr.select {|element| element == "A"}.count.times do
+    card_array.select {|card| card == "A"}.count.times do
       break if total <= 21
       total -= 11
     end
@@ -45,21 +45,23 @@ helpers do
     "<img src='/images/cards/#{suit}_#{value}.jpg' class='card_image'>"
   end
 
-  def winner!(msg)
+  def play_again
     @play_again = true
     @show_hit_or_stay_buttons = false
+  end
+
+  def winner!(msg)
+    play_again
     @success = "<strong>#{session[:player_name]} wins</strong> #{msg}"
   end
 
   def loser!(msg)
-    @play_again = true
-    @show_hit_or_stay_buttons = false
+    play_again
     @error = "<strong>#{session[:player_name]} loses</strong> #{msg}"
   end
 
   def tie!(msg)
-    @play_again = true
-    @show_hit_or_stay_buttons = false
+    play_again
     @success = "<strong>Its's a tie!</strong> #{msg}"
   end
 end
