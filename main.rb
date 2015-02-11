@@ -5,6 +5,7 @@ set :sessions, true
 
 BLACKJACK = 21
 DEALER_MIN_HIT = 17
+INITIAL_POT_AMOUNT = 500
 
 helpers do 
   def calculate_total(cards)
@@ -51,18 +52,20 @@ helpers do
   end
 
   def winner!(msg)
+    session[:player_pot] += session[:player_bet]
     play_again
-    @success = "<strong>#{session[:player_name]} wins</strong> #{msg}"
+    @winner = "<strong>#{session[:player_name]} wins</strong> #{msg}"
   end
 
   def loser!(msg)
+    session[:player_pot] -= session[:player_bet]
     play_again
-    @error = "<strong>#{session[:player_name]} loses</strong> #{msg}"
+    @loser = "<strong>#{session[:player_name]} loses</strong> #{msg}"
   end
 
   def tie!(msg)
     play_again
-    @success = "<strong>Its's a tie!</strong> #{msg}"
+    @winner = "<strong>Its's a tie!</strong> #{msg}"
   end
 end
 
@@ -79,6 +82,7 @@ get '/' do
 end
 
 get '/new_player' do 
+  session[:player_pot] = INITIAL_POT_AMOUNT
   erb :new_player
 end
 
@@ -88,7 +92,25 @@ post '/new_player' do
     halt erb(:new_player)
   end
   session[:player_name] = params[:player_name]
-  redirect '/game'
+  redirect '/bet'
+end
+
+get '/bet' do 
+  session[:player_bet] = nil
+  erb :bet
+end
+
+post '/bet' do
+  params[:bet_amount].to_i
+  if params[:bet_amount].nil? || params[:bet_amount].to_i == 0
+    @error = "Must make a bet"
+    halt erb(:bet)
+  elsif params[:bet_amount].to_i > session[:player_pot]
+    @error = "Bet amount cannot be greater than what you have ($#{session[:player_pot]})"
+  else
+    session[:player_bet] = params[:bet_amount].to_i
+    redirect '/game'
+  end
 end
 
 get '/game' do 
@@ -118,7 +140,7 @@ post '/game/player/hit' do
   elsif player_total > BLACKJACK
     loser!("looks like, #{session[:player_name]} busted at #{player_total}.")
   end
-  erb :game
+  erb :game, layout: false
 end
 
 post '/game/player/stay' do 
@@ -144,7 +166,7 @@ get '/game/dealer' do
     @show_dealer_hit_button = true
   end
 
-  erb :game
+  erb :game, layout: false
 end
 
 post '/game/dealer/hit' do 
@@ -165,7 +187,7 @@ get '/game/compare' do
     tie!("both #{session[:player_name]} and #{session[:dealer]} stayed at #{player_total}")
   end
 
-  erb :game
+  erb :game, layout: false
 end
 
 get '/game_over' do 

@@ -1,0 +1,12 @@
+<% if session[:player_pot] > 0 %>
+  <h3>Make a bet for this round.</h3>
+  <p><%= session[:player_name] %> has $<%= session[:player_pot].to_i %></p>
+  <form action="/bet" method="post">
+    <input type="text" name="bet_amount" style="width: 50px" />
+    <br>
+    <input type="submit" value="Make Bet" class="btn">
+  </form>
+<% else %>
+  <h3>You're out of money!</h3>
+  <p><a href="/new_player">Start Over</a> or go home crying to mommy</p>
+<% end %>
